@@ -1,0 +1,17 @@
+name: Daily Reddit Posts
+
+on:
+  schedule:
+    - cron: '10 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python reddit_poster_master.py
