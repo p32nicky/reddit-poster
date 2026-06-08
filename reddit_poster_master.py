@@ -1,6 +1,6 @@
 """
 Master Reddit poster - runs all platforms across all subreddits
-Upload to PythonAnywhere and set as scheduled task
+TEST VERSION - posts 1 per subreddit
 """
 import requests, time, os, sys, json
 
@@ -19,21 +19,19 @@ VIATOR_HEADERS = {
 
 POSTS = {
     "NewYorkCityTours": [
-        ("viator", "New York", 3),
-        ("byfood", "ny_tours", "tours", "New York", 2),
+        ("viator", "New York", 1),
     ],
     "LondonEnglandTours": [
-        ("viator", "London", 3),
-        ("byfood", "uk_tours", "tours", "London", 2),
+        ("viator", "London", 1),
     ],
     "ExploreRome": [
-        ("viator", "Rome", 3),
+        ("viator", "Rome", 1),
     ],
     "ThingsToDoInThailand_": [
-        ("viator", "Thailand", 3),
+        ("viator", "Thailand", 1),
     ],
     "ExploreSouthAfrica": [
-        ("viator", "South Africa", 3),
+        ("viator", "South Africa", 1),
     ],
 }
 
@@ -84,9 +82,10 @@ def post_viator(token, subreddit, city, count):
         body = f"**[Book on Viator →]({url})**\n\n---\n*Affiliate link*"
         if post_to_reddit(token, subreddit, title, body):
             posted += 1
+            print(f"    ✓ {title[:60]}")
             time.sleep(3)
 
-    print(f"  {subreddit} (Viator {city}): {posted}/{count}")
+    print(f"  {subreddit}: {posted} posted")
     return posted
 
 # Main
@@ -101,6 +100,8 @@ try:
                 _, city, count = task
                 total += post_viator(token, subreddit, city, count)
 
-    print(f"Done. {total} posts.")
+    print(f"\n✅ Done. {total} posts.")
 except Exception as e:
-    print(f"ERROR: {e}")
+    print(f"❌ ERROR: {e}")
+    import traceback
+    traceback.print_exc()
