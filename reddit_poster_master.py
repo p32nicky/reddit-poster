@@ -16,12 +16,32 @@ VIATOR_HEADERS = {
     "Content-Type": "application/json"
 }
 
+HEADOUT_KEY = "pk_Z.4RWaALZWs5FeVEr9f8t.FOLxzkMCz15PzpssWYtwM~"
+HEADOUT_HEADERS = {
+    "Headout-Auth": HEADOUT_KEY
+}
+
 POSTS = {
-    "NewYorkCityTours": [("viator", "New York", 3)],
-    "LondonEnglandTours": [("viator", "London", 3)],
-    "ExploreRome": [("viator", "Rome", 3)],
-    "ThingsToDoInThailand_": [("viator", "Thailand", 3)],
-    "ExploreSouthAfrica": [("viator", "South Africa", 3)],
+    "NewYorkCityTours": [
+        ("viator", "New York", 3),
+        ("headout", "NEW_YORK", 2),
+    ],
+    "LondonEnglandTours": [
+        ("viator", "London", 3),
+        ("headout", "LONDON", 2),
+    ],
+    "ExploreRome": [
+        ("viator", "Rome", 3),
+        ("headout", "ROME", 2),
+    ],
+    "ThingsToDoInThailand_": [
+        ("viator", "Thailand", 3),
+        ("headout", "BANGKOK", 2),
+    ],
+    "ExploreSouthAfrica": [
+        ("viator", "South Africa", 3),
+        ("headout", "CAPE_TOWN", 1),
+    ],
 }
 
 def get_token():
@@ -51,6 +71,13 @@ def fetch_viator(city):
     if r.status_code != 200:
         return []
     return r.json().get("products", {}).get("results", [])
+
+def fetch_headout(city_code):
+    r = requests.get(f"https://www.headout.com/api/public/v2/products?cityCode={city_code}&limit=50",
+        headers=HEADOUT_HEADERS, timeout=15)
+    if r.status_code != 200:
+        return []
+    return r.json().get("products", [])
 
 def post_viator(token, subreddit, city, count):
     tours = fetch_viator(city)
@@ -89,14 +116,50 @@ def post_viator(token, subreddit, city, count):
     print(f"  {subreddit}: {posted}/{count} posted\n")
     return posted
 
+def post_headout(token, subreddit, city_code, count):
+    tours = fetch_headout(city_code)
+    if not tours:
+        return 0
+
+    posted = 0
+    for t in tours[:count]:
+        title = t.get("name", "")[:200]
+        product_code = t.get("productCode", "")
+        url = f"https://www.headout.com/experiences/{product_code}/?refId={HEADOUT_KEY}"
+        desc = t.get("description", "")[:200].strip()
+        rating = t.get("rating", {}).get("average", "") if isinstance(t.get("rating"), dict) else ""
+        price = t.get("pricing", {}).get("minPrice", "")
+
+        rating_line = f"**Rating:** {rating}/5  \n" if rating else ""
+        price_line = f"**Price:** From {price}  \n" if price else ""
+        desc_line = f"\n{desc}\n" if desc else ""
+
+        body = f"""{rating_line}{price_line}{desc_line}
+**[Book on Headout →]({url})**
+
+---
+*Affiliate link — we may earn a small commission.*"""
+
+        if post_to_reddit(token, subreddit, title, body):
+            posted += 1
+            print(f"  ✓ {title[:50]}")
+            time.sleep(3)
+
+    print(f"  {subreddit}: {posted}/{count} posted\n")
+    return posted
+
 try:
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Starting Reddit posts...\n")
     token = get_token()
     total = 0
     for subreddit, tasks in POSTS.items():
         for task in tasks:
-            _, city, count = task
-            total += post_viator(token, subreddit, city, count)
+            if task[0] == "viator":
+                _, city, count = task
+                total += post_viator(token, subreddit, city, count)
+            elif task[0] == "headout":
+                _, city_code, count = task
+                total += post_headout(token, subreddit, city_code, count)
     print(f"✅ Done. {total} total posts.")
 except Exception as e:
     print(f"❌ ERROR: {e}")
