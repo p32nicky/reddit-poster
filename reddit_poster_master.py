@@ -24,23 +24,18 @@ HEADOUT_HEADERS = {
 POSTS = {
     "NewYorkCityTours": [
         ("viator", "New York", 3),
-        ("headout", "NEW_YORK", 2),
     ],
     "LondonEnglandTours": [
         ("viator", "London", 3),
-        ("headout", "LONDON", 2),
     ],
     "ExploreRome": [
         ("viator", "Rome", 3),
-        ("headout", "ROME", 2),
     ],
     "ThingsToDoInThailand_": [
         ("viator", "Thailand", 3),
-        ("headout", "BANGKOK", 2),
     ],
     "ExploreSouthAfrica": [
         ("viator", "South Africa", 3),
-        ("headout", "CAPE_TOWN", 1),
     ],
 }
 
