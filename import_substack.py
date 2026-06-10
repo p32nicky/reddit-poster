@@ -8,7 +8,7 @@ import requests
 import psycopg2
 from datetime import datetime, timezone
 
-DATABASE_URL = "postgresql://neondb_owner:npg_Nq8ZoKMlD1nt@ep-green-sound-angzcs1z-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+DATABASE_URL = "postgresql://postgres:P32nicky!!??@db.ijmhnhzydouqcifvrpss.supabase.co:5432/postgres"
 PUB = "nickmdavies.substack.com"
 H = {"User-Agent": "Mozilla/5.0"}
 
