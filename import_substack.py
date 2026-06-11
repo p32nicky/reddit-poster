@@ -69,15 +69,13 @@ def main():
         if not body or not title:
             failed += 1
             continue
-        pub_date = (full.get("post_date") or "")[:10]
-        now = datetime.now(timezone.utc).isoformat()
         try:
             cur.execute("""
-                INSERT INTO tours (title, slug, image_url, description, link, keywords, publish_date, first_seen_at, article_text)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                INSERT INTO tours (title, slug, image_url, description, link, keywords, article_text, source)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT (slug) DO NOTHING
             """, (title, slug, cover, subtitle, link or "https://www.headout.com/london",
-                  "London, tours, things to do in London", pub_date, now, body))
+                  "London, tours, things to do in London", body, "substack"))
             added += 1
             if added % 25 == 0:
                 print(f"  [{i}/{len(posts)}] added {added}...")
