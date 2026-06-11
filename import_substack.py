@@ -78,12 +78,15 @@ def main():
         if not body or not title:
             failed += 1
             continue
+        if not link or "headout" in link:
+            skipped += 1
+            continue
         try:
             cur.execute("""
                 INSERT INTO tours (title, slug, image_url, description, link, keywords, article_text, source)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT (slug) DO NOTHING
-            """, (title, slug, cover, subtitle, link or "https://www.headout.com/london",
+            """, (title, slug, cover, subtitle, link,
                   "London, tours, things to do in London", body, "substack"))
             added += 1
             if added % 25 == 0:
