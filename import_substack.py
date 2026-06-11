@@ -26,18 +26,27 @@ def fetch_archive():
     return posts
 
 def fetch_full(slug):
-    r = requests.get(f"https://{PUB}/api/v1/posts/{slug}", headers=H, timeout=20)
-    if r.status_code != 200:
-        return None
-    return r.json()
+    for attempt in range(3):
+        try:
+            r = requests.get(f"https://{PUB}/api/v1/posts/{slug}", headers=H, timeout=30)
+            if r.status_code == 429:
+                time.sleep(30)
+                continue
+            if r.status_code != 200:
+                return None
+            return r.json()
+        except requests.exceptions.RequestException:
+            time.sleep(10)
+    return None
 
 def extract_link(body_html):
+    from html import unescape
     m = re.search(r'href="(https://www\.headout\.com/[^"]+)"', body_html)
     if m:
-        return m.group(1)
+        return unescape(m.group(1))
     m = re.search(r'href="(https://www\.viator\.com/[^"]+)"', body_html)
     if m:
-        return m.group(1)
+        return unescape(m.group(1))
     return ""
 
 def main():
@@ -82,7 +91,7 @@ def main():
         except Exception as e:
             failed += 1
             print(f"  FAIL {slug}: {e}")
-        time.sleep(0.3)
+        time.sleep(1)
 
     cur.execute("SELECT COUNT(*) FROM tours")
     total = cur.fetchone()[0]
