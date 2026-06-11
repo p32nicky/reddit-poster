@@ -41,9 +41,6 @@ def fetch_full(slug):
 
 def extract_link(body_html):
     from html import unescape
-    m = re.search(r'href="(https://www\.headout\.com/[^"]+)"', body_html)
-    if m:
-        return unescape(m.group(1))
     m = re.search(r'href="(https://www\.viator\.com/[^"]+)"', body_html)
     if m:
         return unescape(m.group(1))
@@ -78,7 +75,7 @@ def main():
         if not body or not title:
             failed += 1
             continue
-        if not link or "headout" in link:
+        if not link:
             skipped += 1
             continue
         try:
