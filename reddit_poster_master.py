@@ -64,6 +64,25 @@ def post_to_reddit(token, subreddit, title, body):
         data={"sr": subreddit, "kind": "self", "title": title, "text": body})
     return res.json().get("success", False)
 
+# Freetext search is fuzzy - verify destination via productUrl path
+CITY_URL_MATCH = {
+    "London": ["/london/"],
+    "New York": ["/new-york"],
+    "Rome": ["/rome/"],
+    "Sydney": ["/sydney/"],
+    "Melbourne": ["/melbourne/"],
+    "San Diego": ["/san-diego/"],
+    "Thailand": ["bangkok", "phuket", "chiang-mai", "krabi", "pattaya", "koh-samui", "thailand"],
+    "South Africa": ["cape-town", "johannesburg", "durban", "kruger", "south-africa", "stellenbosch"],
+}
+
+def city_match(city, url):
+    frags = CITY_URL_MATCH.get(city)
+    if not frags:
+        return True
+    u = url.lower()
+    return any(f in u for f in frags)
+
 def fetch_viator(city, count=50, start=1):
     body = {
         "searchTerm": f"{city} tours",
@@ -80,6 +99,7 @@ def fetch_viator(city, count=50, start=1):
 def post_viator(token, subreddit, city, count):
     # Fetch up to 100 tours, rotate by day-of-year so daily posts differ
     tours = fetch_viator(city, 50, 1) + fetch_viator(city, 50, 51)
+    tours = [t for t in tours if city_match(city, t.get("productUrl", ""))]
     if not tours:
         print(f"  {subreddit}: 0 tours")
         return 0
