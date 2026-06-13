@@ -18,48 +18,41 @@ VIATOR_HEADERS = {
     "Content-Type": "application/json"
 }
 
+# GetYourGuide posting PAUSED (June 2026): affiliate deep links route through
+# GYG's concierge/search page instead of the tour, and no bypass param found.
+# Viator-only until a GYG direct-link param is confirmed. GYG CSVs + post
+# function are kept; re-add ("getyourguide", city, n) tuples to resume.
 POSTS = {
     "ThingsToDoInLondonUK": [
-        ("viator", "London", 2),
-        ("getyourguide", "London", 1),
+        ("viator", "London", 3),
     ],
     "LondonEnglandTours": [
-        ("viator", "London", 2),
-        ("getyourguide", "London", 1),
+        ("viator", "London", 3),
     ],
     "NewYorkCityTours": [
-        ("viator", "New York", 2),
-        ("getyourguide", "New York", 1),
+        ("viator", "New York", 3),
     ],
     "ExploreNewYork": [
-        ("viator", "New York", 2),
-        ("getyourguide", "New York", 1),
+        ("viator", "New York", 3),
     ],
     "ExploreRome": [
-        ("viator", "Rome", 2),
-        ("getyourguide", "Rome", 1),
+        ("viator", "Rome", 3),
     ],
     "ExploreSydneyAU": [
-        ("viator", "Sydney", 1),
-        ("getyourguide", "Sydney", 1),
-        ("viator", "Melbourne", 1),
-        ("getyourguide", "Melbourne", 1),
+        ("viator", "Sydney", 2),
+        ("viator", "Melbourne", 2),
     ],
     "Explore_SanDiego": [
-        ("viator", "San Diego", 2),
-        ("getyourguide", "San Diego", 1),
+        ("viator", "San Diego", 3),
     ],
     "ThingsToDoInThailand_": [
-        ("viator", "Thailand", 2),
-        ("getyourguide", "Thailand", 1),
+        ("viator", "Thailand", 3),
     ],
     "ExploreSouthAfrica": [
-        ("viator", "South Africa", 2),
-        ("getyourguide", "South Africa", 1),
+        ("viator", "South Africa", 3),
     ],
     "LasVegas_Shows": [
-        ("viator", "Las Vegas", 5),
-        ("getyourguide", "Las Vegas", 5),
+        ("viator", "Las Vegas", 10),
     ],
 }
 
