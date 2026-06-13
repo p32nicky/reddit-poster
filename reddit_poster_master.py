@@ -47,6 +47,9 @@ POSTS = {
     "ExploreSouthAfrica": [
         ("viator", "South Africa", 3),
     ],
+    "LasVegas_Shows": [
+        ("viator", "Las Vegas", 3),
+    ],
 }
 
 def get_token():
@@ -74,6 +77,7 @@ CITY_URL_MATCH = {
     "San Diego": ["/san-diego/"],
     "Thailand": ["bangkok", "phuket", "chiang-mai", "krabi", "pattaya", "koh-samui", "thailand"],
     "South Africa": ["cape-town", "johannesburg", "durban", "kruger", "south-africa", "stellenbosch"],
+    "Las Vegas": ["/las-vegas/", "vegas"],
 }
 
 def city_match(city, url):
