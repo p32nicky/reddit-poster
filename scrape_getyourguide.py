@@ -12,7 +12,9 @@ import re
 PARTNER_ID = "VF7NIT2"
 UTM = f"partner_id={PARTNER_ID}&utm_medium=online_publisher"
 
-# Verified GetYourGuide city codes (resolved via search)
+# Verified GetYourGuide city codes (resolved via search).
+# Thailand/South Africa map to their dense tourist-hub city pages (Bangkok,
+# Cape Town) but keep the POSTS-dict key so the poster finds the CSV.
 CITIES = {
     "Rome": "rome-l33",
     "London": "london-l57",
@@ -20,6 +22,10 @@ CITIES = {
     "New York": "new-york-city-l59",
     "San Diego": "san-diego-l263",
     "Paris": "paris-l16",
+    "Melbourne": "melbourne-l202",
+    "Las Vegas": "las-vegas-l58",
+    "Thailand": "bangkok-l169",
+    "South Africa": "cape-town-l103",
 }
 
 # High-converting keywords (food/experiences first per conversion data)
