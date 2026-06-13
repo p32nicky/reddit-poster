@@ -48,7 +48,7 @@ POSTS = {
         ("viator", "South Africa", 3),
     ],
     "LasVegas_Shows": [
-        ("viator", "Las Vegas", 3),
+        ("viator", "Las Vegas", 10),
     ],
 }
 
