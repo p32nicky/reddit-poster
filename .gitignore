@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+gyg_full.html
+gyg_debug.html

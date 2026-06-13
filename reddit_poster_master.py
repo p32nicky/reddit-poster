@@ -2,7 +2,7 @@
 Master Reddit poster - posts Viator tours daily to all subreddits.
 Rotates through tours by day-of-year so posts don't repeat.
 """
-import requests, time, os, sys, json
+import requests, time, os, sys, json, csv
 from datetime import datetime, timezone
 
 REDDIT_ID = "weFtQwJPb1wsdq2IXexp7Q"
@@ -20,35 +20,46 @@ VIATOR_HEADERS = {
 
 POSTS = {
     "ThingsToDoInLondonUK": [
-        ("viator", "London", 3),
+        ("viator", "London", 2),
+        ("getyourguide", "London", 1),
     ],
     "LondonEnglandTours": [
-        ("viator", "London", 3),
+        ("viator", "London", 2),
+        ("getyourguide", "London", 1),
     ],
     "NewYorkCityTours": [
-        ("viator", "New York", 3),
+        ("viator", "New York", 2),
+        ("getyourguide", "New York", 1),
     ],
     "ExploreNewYork": [
-        ("viator", "New York", 3),
+        ("viator", "New York", 2),
+        ("getyourguide", "New York", 1),
     ],
     "ExploreRome": [
-        ("viator", "Rome", 3),
+        ("viator", "Rome", 2),
+        ("getyourguide", "Rome", 1),
     ],
     "ExploreSydneyAU": [
-        ("viator", "Sydney", 2),
-        ("viator", "Melbourne", 2),
+        ("viator", "Sydney", 1),
+        ("getyourguide", "Sydney", 1),
+        ("viator", "Melbourne", 1),
+        ("getyourguide", "Melbourne", 1),
     ],
     "Explore_SanDiego": [
-        ("viator", "San Diego", 3),
+        ("viator", "San Diego", 2),
+        ("getyourguide", "San Diego", 1),
     ],
     "ThingsToDoInThailand_": [
-        ("viator", "Thailand", 3),
+        ("viator", "Thailand", 2),
+        ("getyourguide", "Thailand", 1),
     ],
     "ExploreSouthAfrica": [
-        ("viator", "South Africa", 3),
+        ("viator", "South Africa", 2),
+        ("getyourguide", "South Africa", 1),
     ],
     "LasVegas_Shows": [
-        ("viator", "Las Vegas", 10),
+        ("viator", "Las Vegas", 5),
+        ("getyourguide", "Las Vegas", 5),
     ],
 }
 
@@ -158,6 +169,68 @@ def post_viator(token, subreddit, city, count):
     print(f"  {subreddit} ({city}): {posted}/{count} posted\n")
     return posted
 
+# GetYourGuide poster — reads CSVs scraped locally by scrape_getyourguide.py
+# (GYG blocks headless, so scraping runs on Nick's PC; CSVs are committed to the
+#  repo and this poster reads them in GitHub Actions). Affiliate: partner VF7NIT2.
+GYG_PARTNER_ID = "VF7NIT2"
+
+def _gyg_csv_path(city):
+    fname = f"getyourguide_{city.lower().replace(' ', '_')}.csv"
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), fname)
+
+def load_getyourguide(city):
+    path = _gyg_csv_path(city)
+    if not os.path.exists(path):
+        return []
+    tours = []
+    with open(path, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            title = (row.get("title") or "").strip()
+            url = (row.get("url") or "").strip()
+            if title and url:
+                tours.append({
+                    "title": title,
+                    "url": url,
+                    "image": (row.get("image_url") or "").strip(),
+                })
+    return tours
+
+def post_getyourguide(token, subreddit, city, count):
+    tours = load_getyourguide(city)
+    if not tours:
+        print(f"  {subreddit} ({city}): 0 GetYourGuide tours (no CSV yet)")
+        return 0
+
+    # CSV is already sorted food/experience first. Rotate by day-of-year so
+    # daily posts differ but high-converters still surface regularly.
+    day = datetime.now(timezone.utc).timetuple().tm_yday
+    offset = (day * count) % len(tours)
+    batch = (tours + tours)[offset:offset + count]
+
+    posted = 0
+    for t in batch:
+        title = t["title"][:280]
+        url = t["url"]
+        # Ensure affiliate params present
+        if "partner_id" not in url:
+            sep = "&" if "?" in url else "?"
+            url = f"{url}{sep}partner_id={GYG_PARTNER_ID}&utm_medium=online_publisher"
+
+        img_line = f"[View tour photo]({t['image']})\n\n" if t.get("image") else ""
+        body = f"""{img_line}**[Book on GetYourGuide →]({url})**
+
+---
+*Affiliate link — we may earn a small commission at no extra cost to you.*"""
+
+        if post_to_reddit(token, subreddit, title, body):
+            posted += 1
+            print(f"  + {title[:50]}")
+            time.sleep(3)
+
+    print(f"  {subreddit} ({city}): {posted}/{count} GetYourGuide posted\n")
+    return posted
+
 try:
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Starting Reddit posts...\n")
     token = get_token()
@@ -167,6 +240,9 @@ try:
             if task[0] == "viator":
                 _, city, count = task
                 total += post_viator(token, subreddit, city, count)
+            elif task[0] == "getyourguide":
+                _, city, count = task
+                total += post_getyourguide(token, subreddit, city, count)
     print(f"Done. {total} total posts.")
 except Exception as e:
     print(f"ERROR: {e}")
