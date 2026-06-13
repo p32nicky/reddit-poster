@@ -193,6 +193,10 @@ def load_getyourguide(city):
                     "title": title,
                     "url": url,
                     "image": (row.get("image_url") or "").strip(),
+                    "price": (row.get("price") or "").strip(),
+                    "rating": (row.get("rating") or "").strip(),
+                    "reviews": (row.get("reviews") or "").strip(),
+                    "duration": (row.get("duration") or "").strip(),
                 })
     return tours
 
@@ -217,8 +221,14 @@ def post_getyourguide(token, subreddit, city, count):
             sep = "&" if "?" in url else "?"
             url = f"{url}{sep}partner_id={GYG_PARTNER_ID}&utm_medium=online_publisher"
 
+        rating_line = ""
+        if t.get("rating"):
+            rev = f" ({t['reviews']} reviews)" if t.get("reviews") else ""
+            rating_line = f"**Rating:** {t['rating']}/5{rev}  \n"
+        price_line = f"**Price:** From {t['price']}  \n" if t.get("price") else ""
+        dur_line = f"**Duration:** {t['duration']}  \n" if t.get("duration") else ""
         img_line = f"[View tour photo]({t['image']})\n\n" if t.get("image") else ""
-        body = f"""{img_line}**[Book on GetYourGuide →]({url})**
+        body = f"""{rating_line}{price_line}{dur_line}{img_line}**[Book on GetYourGuide →]({url})**
 
 ---
 *Affiliate link — we may earn a small commission at no extra cost to you.*"""

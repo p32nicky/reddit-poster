@@ -64,6 +64,31 @@ def clean_title(raw):
     return max(candidates, key=len)
 
 
+def parse_meta(raw):
+    """Pull rating, review count, price and duration out of the same multiline
+    card text we already capture (no extra DOM queries needed)."""
+    lines = [l.strip() for l in (raw or "").split("\n") if l.strip()]
+    rating = reviews = price = duration = ""
+    for l in lines:
+        # rating: a bare number like "4.9" (1 decimal, 0-5)
+        if not rating and re.fullmatch(r'[0-5]\.\d', l):
+            rating = l
+        # review count: "(6,422)"
+        if not reviews:
+            mr = re.fullmatch(r'\(([\d,]+)\)', l)
+            if mr:
+                reviews = mr.group(1)
+        # duration: line containing hours/days/minutes
+        if not duration and re.search(r'\b(hours?|days?|minutes?)\b', l, re.I):
+            duration = l.split('•')[0].strip()
+        # price: take the LAST $ amount on a price line (discounted price)
+        if '$' in l or '€' in l or '£' in l:
+            amts = re.findall(r'[$€£]\s?[\d,]+(?:\.\d+)?', l)
+            if amts:
+                price = amts[-1].replace(' ', '')
+    return rating, reviews, price, duration
+
+
 def scrape_getyourguide(driver, city_name):
     city_slug = CITIES.get(city_name, city_name.lower())
     base_url = f"https://www.getyourguide.com/{city_slug}/"
@@ -116,7 +141,8 @@ def scrape_getyourguide(driver, city_name):
                 continue
 
             # Title: clean the multiline card text, fallbacks to aria-label / slug
-            title = clean_title(a.text)
+            card_text = a.text
+            title = clean_title(card_text)
             if not title:
                 title = (a.get_attribute("aria-label") or "").strip()
             if not title:
@@ -124,6 +150,8 @@ def scrape_getyourguide(driver, city_name):
                 title = slug_m.group(1).replace("-", " ").title() if slug_m else ""
             if not title or len(title) < 5:
                 continue
+
+            rating, reviews, price, duration = parse_meta(card_text)
 
             # Build clean affiliate URL (strip ranking_uuid/q noise, keep base path)
             base = href.split("?")[0]
@@ -140,7 +168,9 @@ def scrape_getyourguide(driver, city_name):
                 pass
 
             seen_ids.add(tour_id)
-            tours.append({"title": title[:200], "url": url, "image": image})
+            tours.append({"title": title[:200], "url": url, "image": image,
+                          "rating": rating, "reviews": reviews,
+                          "price": price, "duration": duration})
         except Exception:
             continue
 
@@ -152,8 +182,10 @@ def scrape_getyourguide(driver, city_name):
 
 def save_to_csv(city_name, tours):
     filename = f"getyourguide_{city_name.lower().replace(' ', '_')}.csv"
+    fields = ["title", "url", "city", "image_url", "description",
+              "price", "rating", "reviews", "duration"]
     with open(filename, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["title", "url", "city", "image_url", "description"])
+        writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for t in tours:
             writer.writerow({
@@ -162,6 +194,10 @@ def save_to_csv(city_name, tours):
                 "city": city_name,
                 "image_url": t["image"],
                 "description": "",
+                "price": t.get("price", ""),
+                "rating": t.get("rating", ""),
+                "reviews": t.get("reviews", ""),
+                "duration": t.get("duration", ""),
             })
     print(f"[OK] Saved {len(tours)} tours -> {filename}\n")
 
