@@ -104,6 +104,21 @@ def post_viator(token, subreddit, city, count):
         print(f"  {subreddit}: 0 tours")
         return 0
 
+    # Prioritize high-converting tours: food, experiences, photo shoots, premium
+    import re
+    food_re = re.compile(r'food|eat|taste|cook|meal|dining|restaurant|bakery|market|wine|cheese|omakase|wagyu|sushi', re.I)
+    exp_re = re.compile(r'photo|shoot|exclusive|vip|premium|opera|concert|theater|spa|private', re.I)
+
+    def tour_priority(t):
+        title = t.get("title", "").lower()
+        if food_re.search(title):
+            return 0  # food = highest priority
+        if exp_re.search(title):
+            return 1  # experiences = second
+        return 2  # generic tours = last
+
+    tours.sort(key=tour_priority)  # Sort food first, then experiences, then generic
+
     day = datetime.now(timezone.utc).timetuple().tm_yday
     offset = (day * count) % len(tours)
     batch = (tours + tours)[offset:offset + count]
