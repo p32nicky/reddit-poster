@@ -8,7 +8,10 @@ import requests
 import psycopg2
 from datetime import datetime, timezone
 
-DATABASE_URL = "postgresql://postgres:P32nicky!!??@db.ijmhnhzydouqcifvrpss.supabase.co:5432/postgres"
+# Use the Supabase POOLER (IPv4) — the direct db.* host needs IPv6, which
+# GitHub Actions runners can't reach ("Network is unreachable").
+DB = dict(host="aws-1-us-east-1.pooler.supabase.com", port=6543, dbname="postgres",
+          user="postgres.ijmhnhzydouqcifvrpss", password="P32nicky!!??", sslmode="require")
 PUB = "nickmdavies.substack.com"
 H = {"User-Agent": "Mozilla/5.0"}
 
@@ -47,7 +50,7 @@ def extract_link(body_html):
     return ""
 
 def main():
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(**DB)
     conn.autocommit = True
     cur = conn.cursor()
     cur.execute("SELECT slug FROM tours")
