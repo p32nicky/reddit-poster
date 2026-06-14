@@ -142,10 +142,12 @@ def post_viator(token, subreddit, city, count):
     offset = (day * count) % len(tours)
     batch = (tours + tours)[offset:offset + count]
 
+    # Viator sub-tracking: campaign must be alphanumeric + dashes only.
+    camp = ("reddit-" + subreddit).replace("_", "-").rstrip("-")
     posted = 0
     for t in batch:
         title = t.get("title", "")[:200]
-        url = t.get("productUrl", "") + "&target_lander=NONE"
+        url = t.get("productUrl", "") + "&target_lander=NONE" + f"&campaign={camp}"
         desc = t.get("description", "")
         if isinstance(desc, dict):
             desc = desc.get("snippet", "") or desc.get("overview", "")
