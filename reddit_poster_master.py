@@ -294,11 +294,35 @@ def post_tripcom(token, subreddit, city, count):
     print(f"  {subreddit} ({city}): {posted}/{count} Trip.com posted\n")
     return posted
 
+# Spread posting across the day. Each scheduled run (10/14/18/22 UTC) handles
+# one slot of subreddits instead of dumping all ~38 posts in a single burst.
+# Set env POST_ALL=1 to force every subreddit (e.g. manual full run).
+SLOTS = {
+    10: ["ThingsToDoInLondonUK", "LondonEnglandTours", "NewYorkCityTours"],
+    14: ["ExploreNewYork", "ExploreRome", "ExploreSydneyAU"],
+    18: ["Explore_SanDiego", "ThingsToDoInThailand_"],
+    22: ["ExploreSouthAfrica", "LasVegas_Shows"],
+}
+
+def active_subreddits():
+    if os.environ.get("POST_ALL") == "1":
+        return list(POSTS.keys())
+    hour = datetime.now(timezone.utc).hour
+    chosen = min(SLOTS)            # default to earliest slot
+    for h in sorted(SLOTS):
+        if hour >= h:
+            chosen = h            # latest slot at-or-before the current hour
+    return SLOTS[chosen]
+
 try:
     print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Starting Reddit posts...\n")
     token = get_token()
     total = 0
+    active = active_subreddits()
+    print(f"Active slot subreddits: {active}\n")
     for subreddit, tasks in POSTS.items():
+        if subreddit not in active:
+            continue
         for task in tasks:
             if task[0] == "viator":
                 _, city, count = task
