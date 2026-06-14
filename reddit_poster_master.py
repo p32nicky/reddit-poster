@@ -263,7 +263,10 @@ def load_tripcom(city):
             url = (row.get("url") or "").strip()
             if title and url:
                 tours.append({"title": title, "url": url,
-                              "image": (row.get("image_url") or "").strip()})
+                              "image": (row.get("image_url") or "").strip(),
+                              "rating": (row.get("rating") or "").strip(),
+                              "price": (row.get("price") or "").strip(),
+                              "description": (row.get("description") or "").strip()})
     return tours
 
 def post_tripcom(token, subreddit, city, count):
@@ -285,11 +288,17 @@ def post_tripcom(token, subreddit, city, count):
         # Per-source tags so the Trip.com dashboard shows what converts.
         if "trip_sub1" not in url:
             url += f"&trip_sub1=reddit&trip_sub2={subreddit}"
-        img_line = f"[View tour photo]({t['image']})\n\n" if t.get("image") else ""
-        body = f"""{img_line}**[Book on Trip.com →]({url})**
+        # Match the Viator post layout: optional rating/price/desc lines, then
+        # the Book link, divider, and disclaimer. (Trip.com CSV has rating/price
+        # only if scraped; absent ones are simply omitted, same as Viator.)
+        rating_line = f"**Rating:** {t['rating']}/5  \n" if t.get("rating") else ""
+        price_line = f"**Price:** From {t['price']}  \n" if t.get("price") else ""
+        desc_line = f"\n{t['description']}\n" if t.get("description") else ""
+        body = f"""{rating_line}{price_line}{desc_line}
+**[Book on Trip.com →]({url})**
 
 ---
-*Affiliate link — we may earn a small commission at no extra cost to you.*"""
+*Affiliate link — we may earn a small commission.*"""
 
         if post_to_reddit(token, subreddit, title, body):
             posted += 1
