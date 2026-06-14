@@ -23,5 +23,6 @@ jobs:
           python-version: '3.12'
       - run: pip install -r requirements.txt
       - run: python reddit_poster_master.py
-      - run: python import_substack.py
-        if: always()
+      # NOTE: import_substack.py is NOT run here — Cloudflare blocks Substack's
+      # API from GitHub IPs, so it can only run locally. Run it on Nick's PC if
+      # the londonadventurehub article import is needed.
