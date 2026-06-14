@@ -280,6 +280,9 @@ def post_tripcom(token, subreddit, city, count):
         url = t["url"]
         if "Allianceid" not in url:
             url += ("&" if "?" in url else "?") + f"Allianceid={TRIP_ALLIANCE_ID}"
+        # Per-source tags so the Trip.com dashboard shows what converts.
+        if "trip_sub1" not in url:
+            url += f"&trip_sub1=reddit&trip_sub2={subreddit}"
         img_line = f"[View tour photo]({t['image']})\n\n" if t.get("image") else ""
         body = f"""{img_line}**[Book on Trip.com →]({url})**
 
