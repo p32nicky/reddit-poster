@@ -265,6 +265,7 @@ def load_tripcom(city):
                 tours.append({"title": title, "url": url,
                               "image": (row.get("image_url") or "").strip(),
                               "rating": (row.get("rating") or "").strip(),
+                              "reviews": (row.get("reviews") or "").strip(),
                               "price": (row.get("price") or "").strip(),
                               "description": (row.get("description") or "").strip()})
     return tours
@@ -291,7 +292,8 @@ def post_tripcom(token, subreddit, city, count):
         # Match the Viator post layout: optional rating/price/desc lines, then
         # the Book link, divider, and disclaimer. (Trip.com CSV has rating/price
         # only if scraped; absent ones are simply omitted, same as Viator.)
-        rating_line = f"**Rating:** {t['rating']}/5  \n" if t.get("rating") else ""
+        rev = f" ({t['reviews']} reviews)" if t.get("reviews") else ""
+        rating_line = f"**Rating:** {t['rating']}/5{rev}  \n" if t.get("rating") else ""
         price_line = f"**Price:** From {t['price']}  \n" if t.get("price") else ""
         desc_line = f"\n{t['description']}\n" if t.get("description") else ""
         body = f"""{rating_line}{price_line}{desc_line}
