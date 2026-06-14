@@ -41,16 +41,29 @@ def scrape(driver, city, base_url, cap):
     time.sleep(5)
     print(f"    page title: {driver.title[:70]}")
 
-    # Scroll to lazy-load, but stop once we have enough (test cap)
+    # Scroll to lazy-load. Be patient through lazy-load pauses: only stop once
+    # the count has held steady for several consecutive rounds (or hit the cap).
     last = 0
-    for i in range(25):
+    stable = 0
+    for i in range(80):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1.3)
-        anchors = driver.find_elements(By.CSS_SELECTOR, "a[href*='/things-to-do/detail/']")
-        if len(anchors) >= cap or len(anchors) == last:
-            if len(anchors) == last and i > 3:
+        time.sleep(1.6)
+        # nudge up-then-down to retrigger lazy observers that paused
+        if stable >= 2:
+            driver.execute_script("window.scrollBy(0, -400);")
+            time.sleep(0.6)
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(1.2)
+        n = len(driver.find_elements(By.CSS_SELECTOR, "a[href*='/things-to-do/detail/']"))
+        if n >= cap:
+            break
+        if n == last:
+            stable += 1
+            if stable >= 6:   # no growth for 6 rounds -> genuinely exhausted
                 break
-        last = len(anchors)
+        else:
+            stable = 0
+        last = n
 
     anchors = driver.find_elements(By.CSS_SELECTOR, "a[href*='/things-to-do/detail/']")
     print(f"    found {len(anchors)} detail anchors")
