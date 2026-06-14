@@ -299,14 +299,16 @@ def post_tripcom(token, subreddit, city, count):
     print(f"  {subreddit} ({city}): {posted}/{count} Trip.com posted\n")
     return posted
 
-# Spread posting across the day. Each scheduled run (10/14/18/22 UTC) handles
-# one slot of subreddits instead of dumping all ~38 posts in a single burst.
-# Set env POST_ALL=1 to force every subreddit (e.g. manual full run).
+# Spread posting across 24h. Each scheduled run (UTC hour below) handles one
+# slot of subreddits, timed to each audience's local daytime — which also puts
+# the Asia/Pacific/Africa ones in US night hours. Set POST_ALL=1 to force all.
 SLOTS = {
-    10: ["ThingsToDoInLondonUK", "LondonEnglandTours", "NewYorkCityTours"],
-    14: ["ExploreNewYork", "ExploreRome", "ExploreSydneyAU"],
-    18: ["Explore_SanDiego", "ThingsToDoInThailand_"],
-    22: ["ExploreSouthAfrica", "LasVegas_Shows"],
+    2:  ["ExploreSydneyAU", "ThingsToDoInThailand_"],     # ~9a-12p AU/Thai (night ET)
+    6:  ["ExploreSouthAfrica"],                            # ~8a SA / 7a UK (1-2a ET)
+    10: ["ThingsToDoInLondonUK", "LondonEnglandTours"],   # ~11a London (6a ET)
+    14: ["NewYorkCityTours", "ExploreNewYork"],           # 10a ET
+    18: ["ExploreRome", "Explore_SanDiego"],              # 2p ET / 11a PT
+    22: ["LasVegas_Shows"],                               # 6p ET / 3p PT (Vegas)
 }
 
 def active_subreddits():
